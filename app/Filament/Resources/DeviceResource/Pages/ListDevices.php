@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\DeviceResource\Pages;
 
 use App\Filament\Resources\DeviceResource;
+use App\Filament\Widgets\DeviceStatsOverview;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+
 
 class ListDevices extends ListRecords
 {
@@ -14,6 +16,13 @@ class ListDevices extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            DeviceStatsOverview::class,
         ];
     }
 }
