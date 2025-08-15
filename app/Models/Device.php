@@ -2,18 +2,29 @@
 
 namespace App\Models;
 
+
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Laravel\Scout\Searchable;
 
 class Device extends Model
 {
+    use HasFactory, Searchable;
+
     protected $casts = [
         'first_deployed_at' => 'date',
     ];
 
+    protected $fillable = [
+        'name',
+        'first_deployed_at',
+        'health_lifecycle_value',
+        'health_lifecycle_unit',
+    ];
+
     public function getHealthStatus(): array
     {
-        // Случай 1: Дата не установлена
         if (is_null($this->first_deployed_at)) {
             return ['status' => 'N/A', 'percentage' => null, 'color' => 'gray'];
         }
@@ -22,12 +33,10 @@ class Device extends Model
         $endDate = $this->first_deployed_at->copy()->add($this->health_lifecycle_value, $this->health_lifecycle_unit);
         $now = Carbon::now();
 
-        // Случай 2: Устройство еще не "устарело" или дата в будущем (для безопасности)
         if ($now < $startDate || $endDate <= $startDate) {
             return ['status' => 'Perfect', 'percentage' => 0, 'color' => 'success'];
         }
 
-        // Случай 3: Жизненный цикл уже прошел
         if ($now >= $endDate) {
             return ['status' => 'Poor', 'percentage' => 100, 'color' => 'danger'];
         }

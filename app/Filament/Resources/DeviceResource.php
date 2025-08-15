@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -22,8 +23,8 @@ use Filament\Actions\ActionGroup;
 class DeviceResource extends Resource
 {
     protected static ?string $model = Device::class;
-
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static bool $isScopedToTenant = false;
 
     public static function form(Form $form): Form
     {
@@ -57,6 +58,15 @@ class DeviceResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('health')
+                ->label('Health')
+                    ->badge()
+                    ->state(function (Device $record): string {
+                        return $record->getHealthStatus()['status'];
+                    })
+                    ->color(function (Device $record): string {
+                        return $record->getHealthStatus()['color'];
+                    }),
                 TextColumn::make('name')->searchable(),
                 TextColumn::make('first_deployed_at')
                     ->date()
@@ -71,7 +81,26 @@ class DeviceResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                // С
+                SelectFilter::make('health')
+                    ->label('Health Status')
+                    ->options([
+                        'perfect' => 'Perfect',
+                        'good' => 'Good',
+                        'fair' => 'Fair',
+                        'poor' => 'Poor',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        $status = $data['value'];
+                        if (blank($status)) {
+                            return $query;
+                        }
+
+                        $deviceIds = Device::all()->filter(function ($device) use ($status) {
+                            return strtolower($device->getHealthStatus()['status']) === $status;
+                        })->pluck('id');
+
+                        return $query->whereIn('id', $deviceIds);
+                    })
             ])
             ->actions([
                 Actions\EditAction::make(),
