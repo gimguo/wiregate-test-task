@@ -28,37 +28,42 @@ This is a test task implementation for Wiregate. The application is a device con
 
 **Installation Steps:**
 
-1.  **Clone the repository:**
+1.  **Clone the repository and navigate into it:**
     ```bash
     git clone https://github.com/gimguo/wiregate-test-task.git
     cd wiregate-test-task
     ```
 
-2.  **Install PHP dependencies:**
-    ```bash
-    composer install
-    ```
-
-3.  **Copy the environment file:**
+2.  **Copy the environment file:**
     ```bash
     cp .env.example .env
     ```
 
-4.  **Start the Docker containers:**
+3.  **Build and start the application containers:**
+    *(This command will build the local Docker image and start all services)*
     ```bash
-    ./vendor/bin/sail up -d
+    docker compose up -d --build
     ```
 
-5.  **Run database migrations and seed the data:**
-    *(This command will create all tables and populate the database with an admin user and 5 demo devices)*
+4.  **Install PHP dependencies (inside the running container):**
     ```bash
-    ./vendor/bin/sail artisan migrate --seed
+    docker compose exec laravel.test composer install
     ```
 
-6.  **Import data into Meilisearch:**
-    *(This step is necessary to enable search functionality)*
+5.  **Generate the application key:**
     ```bash
-    ./vendor/bin/sail artisan scout:import "App\Models\Device"
+    docker compose exec laravel.test php artisan key:generate
+    ```
+
+6.  **Run migrations and seed the database:**
+    ```bash
+    docker compose exec laravel.test php artisan migrate --seed
+    ```
+
+7.  **Configure Meilisearch and import data:**
+    ```bash
+    docker compose exec laravel.test php artisan scout:configure-meilisearch
+    docker compose exec laravel.test php artisan scout:import "App\Models\Device"
     ```
 
 ## Accessing the Application

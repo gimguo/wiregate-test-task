@@ -53,4 +53,17 @@ class Device extends Model
             default => ['status' => 'Poor', 'percentage' => $percentage, 'color' => 'danger'],
         };
     }
+
+    /**
+     * Get the indexable data array for the model.
+     *
+     * @return array
+     */
+    public function toSearchableArray(): array
+    {
+        $array = $this->toArray();
+        $array['health_status'] = strtolower($this->getHealthStatus()['status']);
+
+        return $array;
+    }
 }

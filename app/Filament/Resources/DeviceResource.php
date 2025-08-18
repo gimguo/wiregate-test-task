@@ -81,7 +81,7 @@ class DeviceResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('health')
+                SelectFilter::make('health_status')
                     ->label('Health Status')
                     ->options([
                         'perfect' => 'Perfect',
