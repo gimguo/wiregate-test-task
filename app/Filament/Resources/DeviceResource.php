@@ -95,11 +95,12 @@ class DeviceResource extends Resource
                             return $query;
                         }
 
-                        $deviceIds = Device::all()->filter(function ($device) use ($status) {
-                            return strtolower($device->getHealthStatus()['status']) === $status;
-                        })->pluck('id');
+                        $scoutResultKeys = Device::search('', function ($meilisearch, string $query, array $options) use ($status) {
+                            $options['filter'] = 'health_status = ' . $status;
+                            return $meilisearch->search($query, $options);
+                        })->keys();
 
-                        return $query->whereIn('id', $deviceIds);
+                        return $query->whereIn('id', $scoutResultKeys);
                     })
             ])
             ->actions([
